@@ -1,0 +1,29 @@
+# wechat-link-collector 依赖清单
+#
+# 装法（一条命令，在技能根目录执行）：
+#     pip install -r requirements.txt
+# 或者只装那一个包：
+#     pip install pywinauto
+#
+# 装到哪个 Python？装到你**实际用来跑脚本**的那个。
+# 用 scripts\run-*.bat 启动的话，它会自动挑出装了 pywinauto 的 Python；
+# 如果你有多个 Python，拿不准就先双击 run-doctor.bat，按提示里打印的路径装。
+
+# ---- 必需：UIA 相关脚本 ----
+# collect_via_browser.py / collect_grouped_layout.py / read_profile_list.py /
+# probe_wechat_uia.py / collect_wechat_uia.py / diag_uia_mode.py /
+# diag_article_window.py
+# （这一行是**穷举**的：凡是顶层 import pywinauto 的脚本都在这，自检会核对。）
+#
+# 装上它就会一并带上 comtypes、pywin32、six —— 脚本里用到的
+# win32api / win32con / win32process 都由 pywin32 提供，不用再单独装。
+pywinauto>=0.6.8
+
+# ---- 可选：只在走对应备选路径时才需要，不装不影响主路径 ----
+#
+# mitmproxy>=10    # scripts/mitm_mp_capture.py（mitmproxy addon，实时抓包）
+# brotli           # scripts/analyze_capture.py 解 .har 里 br 压缩的响应体；
+#                  # 没装会跳过该条记录并提示，不会报错
+#
+# 说明：clipboard_watch.py / analyze_capture.py / make_link_report.py /
+#       profile_parse.py / selftest.py 不需要任何第三方库，裸 Python 即可运行。
