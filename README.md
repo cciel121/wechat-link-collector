@@ -27,7 +27,7 @@
   同一窗口滚动到底后**可见** 485 条（**不是该号总数**，折叠的还没算进去）。
 - 逐篇耗时随布局与机器浮动（1.9–4.5 秒/篇），**采集期间不能动键鼠**。
 
-## 不能做什么（先说清楚，免得白忙）
+## 不能做什么
 
 微信已在 2026 年关闭「枚举公众号全部文章」的接口，**没有任何免登录方案能一次列出全量**。
 本技能是「读出主页列表 + 逐篇打开」的自动化，**不是一键抓全站**。
@@ -37,7 +37,7 @@
 
 ## 环境要求
 
-- **Windows** + **PC 微信 3.9.x**（本技能针对该版本实测；4.x 行为不同）
+- **Windows** + **PC 微信**
 - 默认浏览器为 **Chromium 系**（Chrome / Edge）。Firefox 读不到 URL。
 - 微信开启 **「设置 → 通用设置 → 使用系统默认浏览器打开网页」**
 - Python 3.9+，UIA 脚本需要 `pywinauto` —— 装法见下
@@ -48,7 +48,7 @@
 pip install -r requirements.txt      # 等价于 pip install pywinauto
 ```
 
-装到**你实际用来跑脚本的那个 Python** 里。`pywinauto` 会带上 `comtypes` / `pywin32` / `six`，
+装到**实际用来跑脚本的那个 Python** 里。`pywinauto` 会带上 `comtypes` / `pywin32` / `six`，
 不用再单独装别的。拿不准是哪个 Python？先双击 `scripts/run-doctor.bat`，
 缺依赖时它会把该敲的命令连路径一起打印出来。
 
@@ -139,26 +139,7 @@ wechat-link-collector/
 | `diag_uia_mode.py` / `diag_article_window.py` | 诊断工具 | ✅ |
 | `selftest.py` | 自检（**134 项 / 11 组**） | ❌ |
 
-## 分发：哪些文件要一起传
 
-判据不是"看着有用"，而是 **import 闭包**。实测把主路径的两个文件单独拿出来跑，
-会在 `collect_via_browser.py` 第 89 行直接 `ModuleNotFoundError: No module named 'probe_wechat_uia'`；
-补上它之后又立刻缺 `collect_wechat_uia`。
-
-| 层级 | 文件 | 说明 |
-|------|------|------|
-| **必须** | `SKILL.md`、`requirements.txt` | 前者没有就不是一个技能；后者告诉用户装什么依赖（`pip install -r requirements.txt`） |
-| **必须**（主路径最小集，实测可跑通 `--doctor`） | `scripts/collect_via_browser.py`、`scripts/profile_parse.py`、`scripts/probe_wechat_uia.py`、`scripts/collect_wechat_uia.py` | 后两个是**硬 import**：`probe_wechat_uia` 提供控件常量与遍历工具；`collect_wechat_uia` 仅被用来 import `normalize_key` |
-| **必须**（仅折叠分组布局） | `scripts/collect_grouped_layout.py` | 该布局下**替代** `collect_via_browser.py`。复用上面同一套文件，**不引入新依赖** |
-| **建议** | `README.md`、`references/`（4 个 .md） | 深度资料；不传不影响运行 |
-| **建议** | `scripts/make_link_report.py` | 零本地依赖；索引 + 链接 → Markdown 报告与 `links.txt` |
-| **可选**（便利层） | `scripts/_findpy.bat` + `run-doctor.bat` / `run-collect.bat` / `run-list.bat` / `run-probe.bat` / `run-report.bat` | 纯双击封装。`run-doctor.bat` 等价于 `python scripts/collect_via_browser.py --doctor` |
-| **备用路径**（不传不影响主路径） | `scripts/clipboard_watch.py`、`analyze_capture.py`、`read_profile_list.py`、`mitm_mp_capture.py`、`fiddler_autodump.js` | 路径 A / B。`read_profile_list.py` 还依赖 `probe_wechat_uia` + `profile_parse`；`mitm_mp_capture.py` 需另装 mitmproxy |
-| **开发用**（可整层不传） | `scripts/selftest.py` + `scripts/fixtures/*.html`（5 个） | **要传就得成套传**：它还 import `clipboard_watch`、`analyze_capture`、`profile_parse`，并读 5 个 fixture |
-| **⚠️ 别传** | `__pycache__/`（实测 244 KB）、`scripts/output/` | 编译缓存与运行产物 |
-
-> 待清理项：`collect_wechat_uia.py` 有 22.7 KB、是路径 A+ 的旧入口，如今却**只为 `normalize_key`
-> 一个纯字符串函数**被拉进主路径。把它挪进 `profile_parse.py` 可让主路径最小集从 4 个 `.py` 缩到 3 个。
 
 ## 打包
 
@@ -176,5 +157,3 @@ python <skill-creator>/scripts/package_skill.py <本技能目录> ./dist
 ```bash
 python scripts/selftest.py      # 134 项 / 11 组，不需要 pywinauto
 ```
-
-改任何脚本后必须全绿。覆盖范围与历史教训见 `references/dev-guide.md`。
